@@ -3,72 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>USDC Deposit (Android)</title>
-    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@walletconnect/client@1.7.3/dist/index.min.js"></script>
+    <title>USDC Purchase</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            max-width: 400px;
+            background-color: #f9f9f9;
+        }
+        label, select, button {
+            display: block;
+            margin: 10px 0;
+        }
+    </style>
 </head>
 <body>
-    <h2>USDC Deposit</h2>
-    <button onclick="connectWallet()">Connect Wallet</button>
-    <p id="walletAddress">Wallet: Not connected</p>
 
-    <label for="amount">Select amount:</label>
-    <select id="amount">
-        <option value="10000">0.01 USDC</option>
-        <option value="1000000">1.0 USDC</option>
-    </select>
-    
-    <button onclick="depositUSDC()">Deposit</button>
+<h1>Buy USDC</h1>
 
-    <p id="status"></p>
+<label for="amount">Select Amount (USDC):</label>
+<select id="amount">
+    <option value="0.01">0.01 USDC</option>
+    <option value="1.00">1.00 USDC</option>
+</select>
 
-    <script>
-        let provider, signer, walletConnector;
-        const usdcAddress = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174"; // USDC on Polygon
-        const recipient = "0x7114a16E0a396b0B40ee139e8c14FDd3335348eA";
+<label for="walletType">Select Wallet Type:</label>
+<select id="walletType">
+    <option value="metamask">MetaMask</option>
+    <option value="coinbase">Coinbase Wallet</option>
+    <option value="trust">Trust Wallet</option>
+</select>
 
-        async function connectWallet() {
-            walletConnector = new WalletConnect.default({
-                bridge: "https://bridge.walletconnect.org" // WalletConnect bridge server
-            });
+<button id="purchaseButton">Confirm Purchase</button>
 
-            if (!walletConnector.connected) {
-                walletConnector.createSession().then(() => {
-                    alert("Scan the QR code with your mobile wallet.");
-                    walletConnector.on("connect", (error, payload) => {
-                        if (error) return alert("Connection failed!");
-                        provider = new ethers.providers.Web3Provider(walletConnector);
-                        signer = provider.getSigner();
-                        document.getElementById("walletAddress").innerText = "Wallet: " + payload.params[0].accounts[0];
-                    });
-                });
-            } else {
-                provider = new ethers.providers.Web3Provider(walletConnector);
-                signer = provider.getSigner();
-                document.getElementById("walletAddress").innerText = "Wallet: " + walletConnector.accounts[0];
-            }
+<div id="message" style="margin-top: 20px;"></div>
+
+<script>
+document.getElementById('purchaseButton').onclick = function() {
+    const amount = document.getElementById('amount').value;
+    const walletType = document.getElementById('walletType').value;
+
+    if (amount && walletType) {
+        const confirmPurchase = confirm(`Confirm your purchase of ${amount} USDC using ${walletType}?`);
+
+        if (confirmPurchase) {
+            // Simulating the purchase operation
+            // In production, you would integrate with Wallet Connect here.
+            document.getElementById('message').innerText = 'Purchase was successful!';
+        } else {
+            document.getElementById('message').innerText = 'Purchase cancelled.';
         }
+    } else {
+        document.getElementById('message').innerText = 'Please select an amount and wallet type.';
+    }
+};
+</script>
 
-        async function depositUSDC() {
-            if (!signer) return alert("Please connect your wallet first!");
-
-            const usdcContract = new ethers.Contract(
-                usdcAddress,
-                ["function transfer(address to, uint amount) public returns (bool)"],
-                signer
-            );
-
-            const amount = document.getElementById("amount").value;
-
-            try {
-                document.getElementById("status").innerText = "Sending...";
-                const tx = await usdcContract.transfer(recipient, amount);
-                await tx.wait();
-                document.getElementById("status").innerText = "Deposit Successful! Tx: " + tx.hash;
-            } catch (error) {
-                document.getElementById("status").innerText = "Error: " + error.message;
-            }
-        }
-    </script>
 </body>
 </html>
